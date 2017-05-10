@@ -268,6 +268,26 @@ Return S."
            ,@nameless-aliases)))
 
 
+
+;;; Save hooks
+
+(defun nameless--before-save ()
+  "Remove keywords and reindent buffer before saving."
+  (nameless--remove-keywords)
+  (save-restriction
+    (widen)
+    (indent-region (point-min) (point-max))))
+
+(defun nameless--after-save ()
+  "Replace `nameless-mode' keywords after saving to restore shorter symbol names.
+Reindent buffer and set buffer's modification status to nil after
+re-enabling."
+  (nameless--after-hack-local-variables)
+  (save-restriction
+    (widen)
+    (indent-region (point-min) (point-max)))
+  (set-buffer-modified-p nil))
+
 ;;; Minor mode
 ;;;###autoload
 (define-minor-mode nameless-mode
@@ -284,12 +304,16 @@ Return S."
         (nameless--after-hack-local-variables)
         (add-hook 'hack-local-variables-hook
                   #'nameless--after-hack-local-variables
-                  nil 'local))
+                  nil 'local)
+        (add-hook 'before-save-hook #'nameless--before-save 'append 'local)
+        (add-hook 'after-save-hook #'nameless--after-save 'append 'local))
     (remove-function (local 'filter-buffer-substring-function)
                      #'nameless--filter-string)
     (remove-hook 'hack-local-variables-hook
                  #'nameless--after-hack-local-variables
                  'local)
+    (remove-hook 'before-save-hook #'nameless--before-save 'local)
+    (remove-hook 'after-save-hook #'nameless--after-save 'local)
     (nameless--remove-keywords)))
 
 ;;;###autoload
