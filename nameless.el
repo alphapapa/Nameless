@@ -164,7 +164,12 @@ Value can also be nil, in which case the separator is never hidden."
   "Remove font-lock keywords set by `nameless--add-keywords'."
   (font-lock-remove-keywords nil nameless--font-lock-keywords)
   (setq nameless--font-lock-keywords nil)
-  (nameless--ensure))
+  (nameless--ensure)
+  (when nameless-affect-indentation-and-filling
+    ;; Reindent buffer if affecting indentation
+    (save-restriction
+      (widen)
+      (indent-region (point-min) (point-max)))))
 
 (defun nameless--add-keywords (&rest r)
   "Add font-lock keywords displaying ALIAS as DISPLAY.
@@ -265,7 +270,12 @@ Return S."
          `(,@(when nameless-current-name
                `((nil . ,nameless-current-name)))
            ,@nameless-global-aliases
-           ,@nameless-aliases)))
+           ,@nameless-aliases))
+  (when nameless-affect-indentation-and-filling
+    ;; Reindent buffer if affecting indentation
+    (save-restriction
+      (widen)
+      (indent-region (point-min) (point-max)))))
 
 
 
